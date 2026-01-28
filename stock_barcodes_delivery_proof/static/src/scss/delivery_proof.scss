@@ -1,0 +1,638 @@
+/* Delivery Proof Styles - v17.0.4.0.0 - Mobile-First for Handheld */
+
+/* Mobile-first: Camera button in kanban lines */
+.btn-delivery-camera-line {
+    font-size: 1.3rem;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    position: relative;
+
+    &:hover {
+        color: #0056b3;
+        transform: scale(1.05);
+    }
+
+    &:active {
+        transform: scale(0.95);
+    }
+
+    /* Wrapper for camera icon and badge */
+    .camera-button-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        position: relative;
+    }
+
+    /* Badge positioned above icon */
+    .photo-badge {
+        background-color: #71639e !important;
+        color: #fff !important;
+        font-size: 0.75rem;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-weight: 600;
+        // min-width: 24px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Legacy badge support (will be removed) */
+    .badge {
+        background-color: #71639e !important;
+        color: #fff !important;
+        font-size: 0.7rem;
+        padding: 3px 6px;
+        border-radius: 10px;
+        vertical-align: super;
+    }
+}
+
+/* Mobile-first: Photo gallery modal - Full screen on handheld */
+.photo-gallery-modal {
+    .modal-dialog {
+        margin: 0;
+        max-width: 100%;
+        min-height: 100vh;
+    }
+
+    .modal-content {
+        min-height: 100vh;
+        border-radius: 0;
+        border: none;
+    }
+
+    .modal-header {
+        padding: 12px 15px;
+
+        .modal-title {
+            font-size: 1.1rem;
+        }
+
+        .btn-close {
+            padding: 10px;
+            min-width: 44px;
+            min-height: 44px;
+        }
+    }
+
+    .modal-body {
+        padding: 12px 15px;
+    }
+
+    .gallery-stats {
+        border: 1px solid #dee2e6;
+        padding: 10px 12px;
+        font-size: 0.9rem;
+
+        i.fa-images {
+            color: #007bff;
+            margin-right: 5px;
+        }
+    }
+
+    .photo-metadata {
+        border: 1px solid #dee2e6;
+        font-size: 0.85rem;
+        padding: 8px 10px;
+
+        small.text-muted {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+        }
+    }
+
+    .modal-footer {
+        padding: 12px 15px;
+
+        .btn {
+            min-height: 44px;
+            padding: 10px 20px;
+            font-size: 1rem;
+        }
+    }
+
+    /* Image carousel optimizations for mobile */
+    .image-carousel {
+        img {
+            max-height: 60vh;
+            width: auto;
+            max-width: 100%;
+        }
+    }
+}
+
+/* Badge styles */
+.badge.bg-primary {
+    background-color: #71639e !important;
+}
+
+.badge.bg-success,
+.badge.badge-success {
+    background-color: #28a745 !important;
+    color: #fff !important;
+}
+
+.badge.bg-warning {
+    background-color: #ffc107 !important;
+    color: #212529 !important;
+}
+
+/* Extra small screens - some industrial handhelds */
+@media (max-width: 360px) {
+    .btn-delivery-camera-line {
+        font-size: 1.2rem;
+        padding: 8px 12px;
+
+        .badge {
+            font-size: 0.65rem;
+            padding: 2px 5px;
+        }
+    }
+
+    .photo-gallery-modal {
+        .modal-header,
+        .modal-body,
+        .modal-footer {
+            padding: 10px 12px;
+        }
+
+        .modal-header .modal-title {
+            font-size: 1rem;
+        }
+
+        .gallery-stats {
+            font-size: 0.85rem;
+        }
+
+        .photo-metadata {
+            font-size: 0.8rem;
+        }
+
+        .modal-footer .btn {
+            min-height: 44px;
+            padding: 10px 16px;
+            font-size: 0.95rem;
+        }
+    }
+}
+
+/* Tablet and desktop enhancements */
+@media (min-width: 768px) {
+    .btn-delivery-camera-line {
+        font-size: 1.1rem;
+        min-width: auto;
+        min-height: auto;
+        padding: 8px 12px;
+
+        .photo-badge {
+            font-size: 0.7rem;
+            padding: 2px 7px;
+        }
+
+        .badge {
+            font-size: 0.7rem;
+            padding: 2px 5px;
+        }
+    }
+
+    .photo-gallery-modal {
+        .modal-dialog {
+            margin: 1.75rem auto;
+            max-width: 800px;
+            min-height: auto;
+        }
+
+        .modal-content {
+            min-height: 400px;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            padding: 1rem 1.5rem;
+
+            .modal-title {
+                font-size: 1.25rem;
+            }
+
+            .btn-close {
+                padding: 0.5rem;
+                min-width: auto;
+                min-height: auto;
+            }
+        }
+
+        .modal-body {
+            padding: 1rem 1.5rem;
+        }
+
+        .gallery-stats {
+            padding: 12px 15px;
+            font-size: 1rem;
+        }
+
+        .photo-metadata {
+            font-size: 0.9rem;
+            padding: 10px 12px;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+
+            .btn {
+                min-height: auto;
+                padding: 0.5rem 1rem;
+            }
+        }
+
+        .image-carousel {
+            img {
+                max-height: 500px;
+            }
+        }
+    }
+}
+
+/* Large desktop */
+@media (min-width: 1200px) {
+    .photo-gallery-modal {
+        .modal-dialog {
+            max-width: 1000px;
+        }
+
+        .image-carousel {
+            img {
+                max-height: 600px;
+            }
+        }
+    }
+}
+
+/* ========================================
+   Delivery Proof Image Views - Zoom & Download
+   ======================================== */
+
+/* Kanban view - Image with zoom icon overlay */
+.o_delivery_proof_kanban_image {
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 4px;
+
+    img {
+        transition: transform 0.2s ease;
+    }
+
+    /* Zoom icon overlay */
+    .o_kanban_image_zoom_icon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        opacity: 0;
+        background: rgba(113, 99, 158, 0.85);
+        color: white;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: opacity 0.2s ease;
+        pointer-events: none;
+        font-size: 18px;
+    }
+
+    &:hover {
+        img {
+            transform: scale(1.05);
+        }
+
+        .o_kanban_image_zoom_icon {
+            opacity: 1;
+        }
+    }
+}
+
+/* Form view - Large image with zoom */
+.o_delivery_proof_image_large {
+    width: 100%;
+    text-align: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 15px;
+
+    img {
+        max-width: 100%;
+        max-height: 500px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        cursor: zoom-in;
+        transition: all 0.2s ease;
+
+        &:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            border-color: #71639e;
+        }
+    }
+}
+
+/* Mobile adjustments for form view */
+@media (max-width: 768px) {
+    .o_delivery_proof_image_large {
+        padding: 10px;
+
+        img {
+            max-height: 300px;
+        }
+    }
+
+    .o_delivery_proof_kanban_image {
+        .o_kanban_image_zoom_icon {
+            width: 35px;
+            height: 35px;
+            font-size: 16px;
+        }
+    }
+}
+
+/* Tablet adjustments */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .o_delivery_proof_image_large img {
+        max-height: 400px;
+    }
+}
+
+/* Desktop - larger images */
+@media (min-width: 1200px) {
+    .o_delivery_proof_image_large img {
+        max-height: 600px;
+    }
+}
+
+/* ========================================
+   Delivery Proof Kanban - Gallery Cards
+   ======================================== */
+
+/* Kanban Container - Grid Layout */
+.o_delivery_proof_kanban {
+    .o_kanban_view {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 20px;
+        padding: 20px;
+    }
+}
+
+/* Gallery Card */
+.o_delivery_proof_card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.2s ease;
+    cursor: pointer;
+
+    &:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        transform: translateY(-2px);
+    }
+}
+
+/* Image Container */
+.o_card_image_container {
+    position: relative;
+    height: 160px;
+    overflow: hidden;
+    background: #f8f9fa;
+
+    .o_card_image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    /* Zoom overlay - appears on hover */
+    .o_card_image_overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+
+    .o_gallery_zoom_btn {
+        color: white;
+        background: transparent;
+        border: none;
+        pointer-events: auto;
+        padding: 20px;
+        transition: all 0.2s;
+
+        &:hover {
+            color: white;
+            transform: scale(1.1);
+        }
+
+        &:active {
+            transform: scale(0.95);
+        }
+    }
+
+    &:hover {
+        .o_card_image {
+            transform: scale(1.05);
+        }
+
+        .o_card_image_overlay {
+            opacity: 1;
+        }
+    }
+}
+
+/* Date Section */
+.o_card_date {
+    padding: 12px 15px 8px;
+    color: #71639e;
+    font-weight: 500;
+    font-size: 14px;
+
+    i {
+        margin-right: 6px;
+    }
+}
+
+/* Info Row - Two Columns */
+.o_card_info_row {
+    display: flex;
+    padding: 0 15px 12px;
+    gap: 15px;
+}
+
+.o_card_info_col {
+    flex: 1;
+    min-width: 0;
+}
+
+.o_card_label {
+    display: block;
+    font-size: 10px;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+.o_card_value {
+    font-size: 13px;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+
+    i {
+        margin-right: 5px;
+        color: #6c757d;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
+
+    span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+/* Footer with Action Buttons */
+.o_card_footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 5px;
+    padding: 12px 15px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.o_card_action_btn {
+    padding: 8px 12px;
+    color: #6c757d;
+    font-size: 16px;
+    border: none;
+    background: transparent;
+    transition: all 0.2s ease;
+
+    &:hover {
+        color: #71639e;
+        background: #f8f9fa;
+        border-radius: 4px;
+    }
+
+    &:active {
+        transform: scale(0.95);
+    }
+
+    i {
+        pointer-events: none;
+    }
+}
+
+/* Responsive - Tablet */
+@media (max-width: 1024px) {
+    .o_delivery_proof_kanban .o_kanban_view {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 16px;
+        padding: 16px;
+    }
+}
+
+/* Responsive - Mobile (2 columns) */
+@media (max-width: 768px) {
+    .o_delivery_proof_kanban .o_kanban_view {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .o_card_image_container {
+        height: 120px;
+    }
+
+    .o_card_date {
+        font-size: 12px;
+        padding: 10px 12px 6px;
+    }
+
+    .o_card_info_row {
+        padding: 0 12px 10px;
+        gap: 10px;
+    }
+
+    .o_card_label {
+        font-size: 9px;
+    }
+
+    .o_card_value {
+        font-size: 12px;
+    }
+
+    .o_card_footer {
+        padding: 10px 12px;
+    }
+
+    .o_card_action_btn {
+        padding: 6px 10px;
+        font-size: 14px;
+    }
+}
+
+/* Responsive - Small Mobile (1 column) */
+@media (max-width: 480px) {
+    .o_delivery_proof_kanban .o_kanban_view {
+        grid-template-columns: 1fr;
+    }
+
+    .o_card_image_container {
+        height: 140px;
+    }
+}
+
+/* Desktop - 4 columns */
+@media (min-width: 1200px) {
+    .o_delivery_proof_kanban .o_kanban_view {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+    }
+}
+
+/* Large Desktop - Still 4 columns, just larger */
+@media (min-width: 1400px) {
+    .o_delivery_proof_kanban .o_kanban_view {
+        grid-template-columns: repeat(4, 1fr);
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+}

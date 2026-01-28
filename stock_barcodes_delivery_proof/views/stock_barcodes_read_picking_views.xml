@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_stock_barcodes_read_picking_delivery_proof_form" model="ir.ui.view">
+            <field name="name">stock.barcodes.read.picking.delivery.proof.form</field>
+            <field name="model">wiz.stock.barcodes.read.picking</field>
+            <field name="inherit_id" ref="stock_barcodes.view_stock_barcodes_read_picking_form" />
+            <field name="arch" type="xml">
+
+                <xpath expr="//button[@name='action_clean_values']/../field[@name='picking_state']"
+                    position="after">
+                    <field name="show_delivery_proof" invisible="1" />
+                    <field name="delivery_proof_level" invisible="1" />
+                    <field name="picking_proof_count" invisible="1" />
+                </xpath>
+
+                <xpath expr="//field[@name='pending_move_ids']//field[@name='picking_state']"
+                    position="after">
+                    <field name="delivery_proof_count" />
+                    <field name="has_delivery_proof" />
+                </xpath>
+
+                <xpath
+                    expr="//field[@name='pending_move_ids']//button[@name='action_barcode_inventory_quant_edit']"
+                    position="after">
+                    <button
+                        name="action_open_line_photos_modal"
+                        type="object"
+                        class="btn mt0 btn-delivery-camera-line ml-2 position-relative"
+                        title="Delivery Photos"
+                        context="{'wiz_barcode_id': parent.id, 'todo_id': id}"
+                        attrs="{'invisible': ['|',
+                                ('parent.show_delivery_proof', '=', False),
+                                ('parent.delivery_proof_level', '=', 'picking')
+                               ]}"
+                    >
+                        <i class="fa fa-camera fa-2x" title="Delivery Photos" />
+                        <span
+                            t-if="record.delivery_proof_count.raw_value &gt; 0"
+                            class="badge badge-primary position-absolute"
+                            style="top: -5px; right: -5px; font-size: 0.8em;"
+                            t-esc="record.delivery_proof_count.raw_value"
+                        />
+                    </button>
+                </xpath>
+
+                <xpath
+                    expr="//div[hasclass('oe_stock_barcodes_bottombar')]//div[hasclass('dropup')]"
+                    position="inside">
+                    <button
+                        name="action_open_picking_photos_modal"
+                        type="object"
+                        title="Delivery Photos (Picking)"
+                        icon="fa-camera fa-2x"
+                        class="btn btn-secondary"
+                        attrs="{'invisible': ['|',
+                                ('show_delivery_proof', '=', False),
+                                ('delivery_proof_level', '!=', 'picking')
+                               ]}"
+                    >
+                        <field
+                            name="picking_proof_count"
+                            class="badge badge-primary position-absolute"
+                            style="vertical-align:super;padding:3px 6px;border-radius: 10px; right: -5px; font-weight: bold; color: #fff; background-color: #71639e;"
+                            attrs="{'invisible': [('picking_proof_count', '=', 0)]}"
+                        />
+                    </button>
+                </xpath>
+
+            </field>
+        </record>
+
+    </data>
+</odoo>

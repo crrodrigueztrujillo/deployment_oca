@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="stock_barcodes_delivery_proof.CameraCapture" owl="1">
+        <div class="camera-capture-overlay">
+            <div class="camera-capture-container">
+                <!-- Header -->
+                <div class="camera-header">
+                    <span class="camera-title">
+                        <i class="fa fa-camera me-2" />
+                        Capture Delivery Photo
+                    </span>
+                    <button
+                        class="btn btn-link text-white"
+                        t-on-click="close"
+                        title="Close"
+                    >
+                        <i class="fa fa-times fa-lg" />
+                    </button>
+                </div>
+
+                <!-- Camera body -->
+                <div class="camera-body">
+                    <!-- Error state -->
+                    <t t-if="state.error">
+                        <div class="camera-error">
+                            <i
+                                class="fa fa-exclamation-triangle fa-3x text-warning mb-3"
+                            />
+                            <p class="text-white" t-esc="state.error" />
+                            <button class="btn btn-primary" t-on-click="startCamera">
+                                <i class="fa fa-refresh me-1" /> Try Again
+                            </button>
+                        </div>
+                    </t>
+
+                    <!-- Preview state -->
+                    <t t-elif="state.showPreview">
+                        <div class="camera-preview">
+                            <img
+                                t-att-src="getPreviewUrl()"
+                                class="preview-image"
+                                alt="Captured photo"
+                            />
+                        </div>
+                    </t>
+
+                    <!-- Video stream -->
+                    <t t-else="">
+                        <video
+                            t-ref="video"
+                            autoplay="true"
+                            playsinline="true"
+                            class="camera-video"
+                            t-att-class="{ 'd-none': !state.isStreaming }"
+                        />
+
+                        <!-- Loading state -->
+                        <div
+                            class="camera-loading"
+                            t-if="!state.isStreaming and !state.error"
+                        >
+                            <i class="fa fa-spinner fa-spin fa-3x text-white" />
+                            <p class="text-white mt-2">Starting camera...</p>
+                        </div>
+                    </t>
+
+                    <canvas t-ref="canvas" class="d-none" />
+                </div>
+
+                <!-- Footer with actions -->
+                <div class="camera-footer">
+                    <t t-if="state.showPreview">
+                        <!-- Preview actions -->
+                        <button
+                            class="btn btn-secondary btn-lg"
+                            t-on-click="retakePhoto"
+                        >
+                            <i class="fa fa-refresh me-1" /> Retake
+                        </button>
+                        <button
+                            class="btn btn-success btn-lg"
+                            t-on-click="confirmPhoto"
+                        >
+                            <i class="fa fa-check me-1" /> Use Photo
+                        </button>
+                    </t>
+                    <t t-else="">
+                        <!-- Camera actions -->
+                        <button
+                            class="btn btn-secondary"
+                            t-on-click="switchCamera"
+                            t-att-disabled="!state.isStreaming"
+                            title="Switch camera"
+                        >
+                            <i class="fa fa-refresh" /> Switch
+                        </button>
+                        <button
+                            class="btn btn-primary btn-lg camera-capture-btn"
+                            t-on-click="capturePhoto"
+                            t-att-disabled="!state.isStreaming"
+                            title="Capture photo"
+                        >
+                            <i class="fa fa-camera fa-2x" />
+                        </button>
+                        <button
+                            class="btn btn-danger"
+                            t-on-click="close"
+                            title="Cancel"
+                        >
+                            <i class="fa fa-times" /> Cancel
+                        </button>
+                    </t>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

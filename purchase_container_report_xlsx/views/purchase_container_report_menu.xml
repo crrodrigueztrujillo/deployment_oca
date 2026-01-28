@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem
+        id="menu_purchase_container_excel_report"
+        name="Container Excel Report"
+        parent="purchase.purchase_report_main"
+        action="action_purchase_container_report_wizard"
+        sequence="90"
+       />
+</odoo>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="stock_barcodes_delivery_proof.DeliveryProofGallery" owl="1">
+        <Dialog
+            title="'Delivery Proof Gallery'"
+            size="'xl'"
+            contentClass="'o_delivery_gallery_dialog'"
+        >
+            <t t-set-slot="footer">
+                <button class="btn btn-secondary" t-on-click="props.close">
+                    Close
+                </button>
+            </t>
+
+            <div
+                class="o_delivery_gallery_container"
+                t-on-keydown="handleKeydown"
+                tabindex="0"
+            >
+                <!-- Loading State -->
+                <t t-if="state.loading">
+                    <div class="text-center py-5">
+                        <i class="fa fa-spinner fa-spin fa-3x text-primary" />
+                        <p class="mt-3 text-muted">Loading images...</p>
+                    </div>
+                </t>
+
+                <!-- Gallery View -->
+                <t t-else="">
+                    <!-- Main Image Display -->
+                    <div class="o_gallery_main_image">
+                        <img
+                            t-if="currentImage"
+                            t-att-src="getImageUrl(currentImage)"
+                            alt="Delivery proof"
+                            class="o_gallery_image"
+                        />
+
+                        <!-- Navigation Arrows -->
+                        <t t-if="hasMultipleImages">
+                            <button
+                                class="o_gallery_nav o_gallery_nav_prev"
+                                t-on-click="previous"
+                                title="Previous (←)"
+                            >
+                                <i class="fa fa-chevron-left fa-2x" />
+                            </button>
+                            <button
+                                class="o_gallery_nav o_gallery_nav_next"
+                                t-on-click="next"
+                                title="Next (→)"
+                            >
+                                <i class="fa fa-chevron-right fa-2x" />
+                            </button>
+                        </t>
+
+                        <!-- Counter and Download -->
+                        <div class="o_gallery_info_bar">
+                            <div class="o_gallery_counter" t-if="hasMultipleImages">
+                                <t t-esc="state.currentIndex + 1" /> / <t
+                                    t-esc="state.images.length"
+                                />
+                            </div>
+                            <button
+                                class="btn btn-sm btn-light"
+                                t-on-click="downloadImage"
+                                title="Download"
+                            >
+                                <i class="fa fa-download" /> Download
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Image Details -->
+                    <div class="o_gallery_details" t-if="currentImage">
+                        <div class="o_gallery_detail_item">
+                            <i class="fa fa-calendar text-muted" />
+                            <strong>
+                                <t
+                                    t-esc="currentImage.capture_date || currentImage.create_date"
+                                />
+                            </strong>
+                        </div>
+                        <div class="o_gallery_detail_item">
+                            <i class="fa fa-user text-muted" />
+                            <span>
+                                <t
+                                    t-esc="currentImage.captured_by_id ? currentImage.captured_by_id[1] : (currentImage.create_uid ? currentImage.create_uid[1] : '')"
+                                />
+                            </span>
+                        </div>
+                        <div
+                            class="o_gallery_detail_item"
+                            t-if="currentImage.move_line_id"
+                        >
+                            <i class="fa fa-file-text-o text-muted" />
+                            <span>
+                                <t t-esc="currentImage.move_line_id[1]" />
+                            </span>
+                        </div>
+                        <div
+                            class="o_gallery_detail_item"
+                            t-if="currentImage.picking_id"
+                        >
+                            <i class="fa fa-truck text-muted" />
+                            <span>
+                                <t t-esc="currentImage.picking_id[1]" />
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Thumbnails -->
+                    <div class="o_gallery_thumbnails" t-if="hasMultipleImages">
+                        <t t-foreach="state.images" t-as="image" t-key="image.id">
+                            <div
+                                t-att-class="'o_gallery_thumbnail ' + (image_index === state.currentIndex ? 'active' : '')"
+                                t-on-click="() => this.state.currentIndex = image_index"
+                            >
+                                <img t-att-src="getImageUrl(image)" alt="Thumbnail" />
+                            </div>
+                        </t>
+                    </div>
+                </t>
+            </div>
+        </Dialog>
+    </t>
+</templates>

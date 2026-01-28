@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Odoo 16: hereda la vista de settings de Stock y ubica el bloque
+             después del setting box con id="signature_delivery_orders" -->
+        <record id="view_res_config_settings_stock_delivery_proof" model="ir.ui.view">
+            <field name="name">res.config.settings.view.form.inherit.stock.delivery.proof</field>
+            <field name="model">res.config.settings</field>
+            <field name="priority" eval="40" />
+            <field name="inherit_id" ref="stock.res_config_settings_view_form" />
+            <field name="arch" type="xml">
+
+                <!-- En Odoo 16 NO existe <setting>. Es un div.o_setting_box -->
+                <xpath expr="//div[@id='signature_delivery_orders']" position="after">
+                    <div class="col-12 col-lg-6 o_setting_box" id="delivery_proof_enabled_setting"
+                        title="Enable photo capture as proof of delivery from the barcode scanner interface">
+                        <div class="o_setting_left_pane">
+                            <field name="delivery_proof_enabled" />
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="delivery_proof_enabled" string="Proof of Delivery (Photo)" />
+                            <!-- Si tienes una doc interna, pon aquí un link real o elimínalo -->
+                            <!-- <a href="/stock_barcodes_delivery_proof/readme/CONFIGURE.html"
+                               title="Documentation" class="o_doc_link" target="_blank"></a> -->
+
+                            <div class="text-muted">
+                                Enable photo capture as proof of delivery from the barcode scanner
+                                interface
+                            </div>
+
+                            <div class="content-group"
+                                attrs="{'invisible': [('delivery_proof_enabled', '=', False)]}">
+                                <div class="row mt16">
+                                    <label for="delivery_proof_level"
+                                        string="Photo Storage Level"
+                                        class="col-lg-3 o_light_label" />
+                                    <div class="col-lg-9">
+                                        <field name="delivery_proof_level" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </xpath>
+
+            </field>
+        </record>
+
+    </data>
+</odoo>

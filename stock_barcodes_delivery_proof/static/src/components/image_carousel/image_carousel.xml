@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="stock_barcodes_delivery_proof.ImageCarousel" owl="1">
+        <div class="delivery-proof-carousel">
+            <t t-if="hasImages">
+                <div class="carousel-container">
+                    <!-- Current image -->
+                    <div class="carousel-image-wrapper" t-on-click="toggleFullscreen">
+                        <img
+                            t-att-src="getImageUrl(currentImage)"
+                            class="carousel-image"
+                            t-att-alt="currentImage?.name || 'Delivery proof'"
+                        />
+                    </div>
+
+                    <!-- Navigation controls -->
+                    <t t-if="hasMultipleImages">
+                        <button class="carousel-control prev" t-on-click="previous">
+                            <i class="fa fa-chevron-left" />
+                        </button>
+                        <button class="carousel-control next" t-on-click="next">
+                            <i class="fa fa-chevron-right" />
+                        </button>
+                    </t>
+
+                    <!-- Info and actions -->
+                    <div class="carousel-info">
+                        <div class="info-left">
+                            <span class="image-counter" t-if="hasMultipleImages">
+                                <t t-esc="state.currentIndex + 1" /> / <t
+                                    t-esc="props.images.length"
+                                />
+                            </span>
+                            <span class="image-date" t-if="currentImage?.capture_date">
+                                <i class="fa fa-clock-o me-1" />
+                                <t t-esc="formatDate(currentImage.capture_date)" />
+                            </span>
+                        </div>
+                        <button
+                            class="btn btn-danger btn-delete"
+                            t-if="!props.readonly and props.onDelete"
+                            t-on-click="deleteImage"
+                            title="Delete this photo"
+                        >
+                            <i class="fa fa-trash" />
+                            <span class="delete-text">Delete</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Fullscreen overlay -->
+                <div
+                    class="fullscreen-overlay"
+                    t-if="state.showFullscreen"
+                    t-on-click="toggleFullscreen"
+                >
+                    <img
+                        t-att-src="getImageUrl(currentImage)"
+                        class="fullscreen-image"
+                    />
+                    <button class="btn btn-light close-fullscreen">
+                        <i class="fa fa-times fa-2x" />
+                    </button>
+                    <!-- Navigation in fullscreen -->
+                    <t t-if="hasMultipleImages">
+                        <button class="fullscreen-nav prev" t-on-click.stop="previous">
+                            <i class="fa fa-chevron-left fa-3x" />
+                        </button>
+                        <button class="fullscreen-nav next" t-on-click.stop="next">
+                            <i class="fa fa-chevron-right fa-3x" />
+                        </button>
+                    </t>
+                </div>
+            </t>
+
+            <!-- Empty state -->
+            <div class="delivery-proof-empty text-center p-4" t-else="">
+                <i class="fa fa-image fa-3x text-muted mb-2" />
+                <p class="text-muted mb-0">No delivery photos yet</p>
+            </div>
+        </div>
+    </t>
+</templates>
