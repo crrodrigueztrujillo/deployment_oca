@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<odoo>
+    <record id="purchase_order_view_form_container" model="ir.ui.view">
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='invoice_info']" position="after">
+                <group>
+                    <field name="state" />
+                    <field name="container_ids" colspan="4" 
+                    attrs="{'readonly': [('state', '!=', 'draft')]}">
+                        <tree edit="0">
+                            <field name="name"/>
+                            <field name="date_pickup"/>
+                            <field name="date_etd"/>
+                            <field name="date_eta"/>
+                            <field name="date_received"/>
+                            <field name="state"/>
+                            <button type="object" name="get_formview_action" string="Open" icon="fa-edit"/>
+                        </tree>
+                    </field>
+                </group>
+            </xpath> 
+            <xpath expr="//field[@name='order_line']/tree//field[@name='qty_received']"
+                position="after">
+                <field name="qty_pending" readonly="1" />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="purchase_order_view_tree" model="ir.ui.view">
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_view_tree" />
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="container_ids" widget="many2many_tags" optional="hide" />
+            </field>
+        </field>
+    </record>
+
+    <record id="purchase_order_tree_inherit" model="ir.ui.view">
+        <field name="name">model.name.view.form.inherit</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_tree"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="container_ids" widget="many2many_tags" />
+            </field>
+        </field>
+    </record>
+</odoo>
