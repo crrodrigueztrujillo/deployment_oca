@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_stock_barcode_custom" model="ir.actions.client">
+        <field name="name">Barcode Operations</field>
+        <field name="tag">stock_barcode_custom_main</field>
+    </record>
+
+    <record id="action_stock_barcode_driver" model="ir.actions.client">
+        <field name="name">Driver Deliveries</field>
+        <field name="tag">stock_barcode_custom_driver</field>
+        <field name="context">{"driver_mode": 1}</field>
+    </record>
+
+    <menuitem id="menu_stock_barcode_custom_app"
+              name="Barcode"
+              sequence="45"
+              action="action_stock_barcode_custom"
+              groups="stock.group_stock_user"/>
+
+    <menuitem id="menu_stock_barcode_custom_root"
+              name="Operations"
+              parent="menu_stock_barcode_custom_app"
+              sequence="10"
+              action="action_stock_barcode_custom"
+              groups="stock.group_stock_user"/>
+
+    <menuitem id="menu_barcode_driver_deliveries"
+              name="Driver Deliveries"
+              parent="menu_stock_barcode_custom_app"
+              action="action_stock_barcode_driver"
+              sequence="15"
+              groups="stock.group_stock_user"/>
+
+    <record id="action_stock_barcode_photos" model="ir.actions.act_window">
+        <field name="name">Line Photos</field>
+        <field name="res_model">stock.barcode.photo</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_stock_barcode_photos"
+              name="Delivery Photos"
+              parent="menu_stock_barcode_custom_app"
+              action="action_stock_barcode_photos"
+              sequence="20"
+              groups="stock.group_stock_user"/>
+
+    <record id="action_stock_my_deliveries" model="ir.actions.act_window">
+        <field name="name">My Deliveries</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[("picking_type_code", "=", "outgoing"), ("delivery_driver_id", "=", uid)]</field>
+        <field name="context">{"search_default_done": 1}</field>
+    </record>
+
+    <record id="action_stock_all_deliveries" model="ir.actions.act_window">
+        <field name="name">All Deliveries (Driver Assignment)</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[("picking_type_code", "=", "outgoing"), ("state", "in", ["assigned", "done"])]</field>
+    </record>
+
+    <menuitem id="menu_stock_delivery_driver_root"
+              name="Delivery Driver"
+              parent="stock.menu_stock_root"
+              sequence="32"
+              groups="stock.group_stock_user"/>
+
+    <menuitem id="menu_stock_my_deliveries"
+              name="My Deliveries"
+              parent="menu_stock_delivery_driver_root"
+              action="action_stock_my_deliveries"
+              sequence="10"
+              groups="stock.group_stock_user"/>
+
+    <menuitem id="menu_stock_all_deliveries"
+              name="Assign Deliveries"
+              parent="menu_stock_delivery_driver_root"
+              action="action_stock_all_deliveries"
+              sequence="20"
+              groups="stock.group_stock_manager"/>
+</odoo>

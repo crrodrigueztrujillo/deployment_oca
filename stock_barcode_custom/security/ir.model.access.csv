@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_stock_barcode_photo_user,stock.barcode.photo user,model_stock_barcode_photo,stock.group_stock_user,1,1,1,1
+access_stock_picking_assign_driver_user,stock.picking.assign.driver user,model_stock_picking_assign_driver,stock.group_stock_user,1,1,1,1
+access_stock_picking_photo_user,stock.picking.photo user,model_stock_picking_photo,stock.group_stock_user,1,1,1,1

@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="stock_barcode_custom.Main" owl="1">
+        <div class="o_stock_barcode_custom container-fluid py-3 h-100">
+            <div class="row g-3">
+                <div class="col-12 col-lg-3">
+                    <div class="card p-3">
+                        <h4 class="mb-3"><t t-esc="state.driverMode ? 'Driver Deliveries' : 'Barcode'"/></h4>
+
+                        <label class="form-label">Bodega</label>
+                        <select class="form-select mb-2" t-model.number="state.warehouseId" t-on-change="onWarehouseChange">
+                            <t t-foreach="state.dashboard.warehouses || []" t-as="wh" t-key="wh.id || wh.name">
+                                <option t-att-value="wh.id"><t t-esc="wh.name"/></option>
+                            </t>
+                        </select>
+
+                        <t t-if="!state.driverMode">
+                            <div class="btn-group-vertical w-100">
+                                <button class="btn btn-outline-primary" t-on-click="() => this.changeOperationType('receipt')">Recepciones (<t t-esc="state.dashboard.receipt || 0"/>)</button>
+                                <button class="btn btn-outline-primary" t-on-click="() => this.changeOperationType('internal')">Transferencias (<t t-esc="state.dashboard.internal || 0"/>)</button>
+                                <button class="btn btn-outline-primary" t-on-click="() => this.changeOperationType('delivery')">Despachos (<t t-esc="state.dashboard.delivery || 0"/>)</button>
+                                <button class="btn btn-outline-primary" t-on-click="() => this.changeOperationType('inventory')">Ajustes (<t t-esc="state.dashboard.inventory || 0"/>)</button>
+                                <button class="btn btn-outline-primary" t-on-click="() => this.changeOperationType('batch')">Batch/Wave (<t t-esc="state.dashboard.batch || 0"/>)</button>
+                            </div>
+                        </t>
+
+                        <input class="form-control my-3" placeholder="Buscar o escanear movimiento" t-model="state.query" t-on-input="onOperationSearchInput" t-on-keydown="onOperationSearchScan"/>
+                        <div class="o_operations_list">
+                            <t t-foreach="state.operations" t-as="operation" t-key="operation.model + '_' + operation.id">
+                                <button class="btn btn-light text-start w-100 mb-1" t-on-click="() => (state.driverMode ? this.loadDriverDelivery(operation.id) : this.loadOperation(operation.model, operation.id))">
+                                    <div><strong><t t-esc="operation.raw_name"/></strong></div>
+                                    <small class="text-muted d-block" t-if="operation.warehouse">Bodega: <t t-esc="operation.warehouse"/></small>
+                                    <small class="text-muted d-block" t-if="operation.location_src || operation.location_dest">De: <t t-esc="operation.location_src || '-'"/> → A: <t t-esc="operation.location_dest || '-'"/></small>
+                                    <small t-if="state.driverMode" class="text-muted d-block"><t t-esc="operation.customer || ''"/></small>
+                                </button>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-9">
+                    <div class="card p-3">
+                        <t t-if="state.selected and state.driverMode">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h4 class="mb-0"><t t-esc="state.selected.name"/></h4>
+                                <span class="badge bg-info text-dark"><t t-esc="state.selected.state"/></span>
+                            </div>
+                            <div class="mb-2">
+                                <div><strong>Bodega:</strong> <t t-esc="state.selected.warehouse || '-'"/></div>
+                                <div><strong>Cliente:</strong> <t t-esc="state.selected.customer || '-'"/></div>
+                                <div><strong>Dirección:</strong> <t t-esc="state.selected.address || '-'"/></div>
+                                <div><strong>Rutas:</strong> <t t-esc="state.selected.location_src || '-'"/> → <t t-esc="state.selected.location_dest || '-'"/></div>
+                            </div>
+
+                            <div class="table-responsive mb-3">
+                                <table class="table table-sm align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th>Lote(s)</th>
+                                            <th>Cant. a entregar</th>
+                                            <th>Entregado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="state.lines" t-as="line" t-key="'d_'+line.id">
+                                            <tr>
+                                                <td><t t-esc="line.product"/></td>
+                                                <td>
+                                                    <t t-if="line.lot_details &amp;&amp; line.lot_details.length">
+                                                        <t t-foreach="line.lot_details" t-as="lot_detail" t-key="'dl_' + line.id + '_' + lot_detail.move_line_id">
+                                                            <div><t t-esc="lot_detail.lot || 'No lot'"/>: <t t-esc="lot_detail.qty_done"/> / <t t-esc="lot_detail.qty_expected"/></div>
+                                                        </t>
+                                                    </t>
+                                                    <t t-else=""><t t-esc="line.lot || '-'"/></t>
+                                                </td>
+                                                <td><t t-esc="line.qty_expected"/> <t t-esc="line.uom"/></td>
+                                                <td><t t-esc="line.qty_done"/> <t t-esc="line.uom"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Fotos del chofer</label>
+                                <label class="btn btn-outline-secondary btn-sm w-100 mb-2">
+                                    📷 Tomar foto de entrega
+                                    <input type="file" accept="image/*" capture="environment" class="d-none" t-on-change="onUploadDriverPhoto"/>
+                                </label>
+                                <t t-if="state.driverPhotos.length">
+                                    <ul class="list-group list-group-flush">
+                                        <t t-foreach="state.driverPhotos" t-as="photo" t-key="photo.id">
+                                            <li class="list-group-item px-0 py-1">
+                                                <a t-att-href="photo.url" target="_blank">Foto #<t t-esc="photo.id"/></a>
+                                                <small class="text-muted ms-2"><t t-esc="photo.note || ''"/></small>
+                                            </li>
+                                        </t>
+                                    </ul>
+                                </t>
+                            </div>
+
+                            <h5>Constancia de entrega</h5>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <label class="form-label">Firmado por</label>
+                                    <input class="form-control" t-model="state.driverProof.signedBy" placeholder="Nombre de quien recibe"/>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Firma cliente</label>
+                                    <button type="button" class="btn btn-outline-secondary w-100 mb-0" t-on-click="openSignatureModal">Firmar en pantalla</button>
+                                    <small class="text-success d-block mt-1" t-if="state.driverProof.hasSignature">Firma capturada</small>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Nota (opcional)</label>
+                                    <textarea class="form-control" rows="2" t-model="state.driverProof.note"/>
+                                </div>
+                                <div class="col-12 d-flex gap-2">
+                                    <button class="btn btn-outline-primary" t-on-click="() => this.saveDriverProof(false)">Guardar constancia</button>
+                                    <button class="btn btn-success" t-on-click="() => this.saveDriverProof(true)">Completar entrega</button>
+                                </div>
+                            </div>
+                        </t>
+
+                        <t t-elif="state.selected">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h4 class="mb-0"><t t-esc="state.selected.name"/></h4>
+                                <button class="btn btn-success" t-on-click="validateOperation">Validar</button>
+                            </div>
+                            <div class="mb-2 text-muted">
+                                <div><strong>Bodega:</strong> <t t-esc="state.selected.warehouse || '-'"/></div>
+                                <div><strong>Rutas:</strong> <t t-esc="state.selected.location_src || '-'"/> → <t t-esc="state.selected.location_dest || '-'"/></div>
+                            </div>
+                            <div class="row g-2 align-items-end mb-2">
+                                <div class="col-md-5">
+                                    <label class="form-label">Escanear producto/lote/ubicación</label>
+                                    <input class="form-control" placeholder="Barcode" t-model="state.scanBarcode" t-on-keydown="(ev) => ev.key === 'Enter' ? this.onScanBarcode() : null"/>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Cantidad</label>
+                                    <input class="form-control" type="number" min="0.01" step="0.01" t-model.number="state.quantity"/>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Modo</label>
+                                    <select class="form-select" t-model="state.qtyMode">
+                                        <option value="unit">Unidades</option>
+                                        <option value="package">Paquetes</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Empaque</label>
+                                    <select class="form-select" t-model.number="state.packagingId" t-att-disabled="state.qtyMode !== 'package'">
+                                        <option t-att-value="false">--</option>
+                                        <t t-foreach="state.packagings" t-as="pack" t-key="pack.id">
+                                            <option t-att-value="pack.id"><t t-esc="pack.name"/> (<t t-esc="pack.qty"/>)</option>
+                                        </t>
+                                    </select>
+                                </div>
+                                <div class="col-md-1">
+                                    <button class="btn btn-primary w-100" t-on-click="onScanBarcode">OK</button>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block"><t t-esc="state.message"/></small>
+                            <small class="text-info d-block mb-2"><t t-esc="state.lastProductMessage"/></small>
+
+                            <input class="form-control mb-2" placeholder="Filtrar o escanear producto" t-model="state.lineQuery" t-on-input="filterLines" t-on-keydown="onLineFilterScan"/>
+
+                            <div class="d-none d-md-block table-responsive">
+                                <table class="table table-sm align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th>Picking</th>
+                                            <th>Ubicaciones</th>
+                                            <th>Lote</th>
+                                            <th>Hecho / Esperado</th>
+                                            <th>Empaque</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="state.filteredLines" t-as="line" t-key="line.id">
+                                            <tr>
+                                                <td><t t-esc="line.product"/></td>
+                                                <td><t t-esc="line.picking"/></td>
+                                                <td><small><t t-esc="line.location_src || '-'"/> → <t t-esc="line.location_dest || '-'"/></small></td>
+                                                <td><t t-esc="line.lot || '-'"/></td>
+                                                <td><t t-esc="line.qty_done"/> / <t t-esc="line.qty_expected"/> <t t-esc="line.uom"/></td>
+                                                <td><t t-esc="line.packaging_name || '-'"/> (<t t-esc="line.qty_done_packages"/>/<t t-esc="line.qty_expected_packages"/>)</td>
+                                                <td>
+                                                    <div class="d-flex gap-1">
+                                                        <button class="btn btn-outline-primary btn-sm" t-on-click="() => this.onSetLineQty(line)">✏️</button>
+                                                        <label class="btn btn-outline-secondary btn-sm mb-0" t-att-class="!line.move_line_id ? 'disabled' : ''">
+                                                            📷
+                                                            <input type="file" accept="image/*" capture="environment" class="d-none" t-on-change="(ev) => this.onUploadPhoto(line, ev)"/>
+                                                        </label>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="d-md-none">
+                                <t t-foreach="state.filteredLines" t-as="line" t-key="'mobile_' + line.id">
+                                    <div class="card mb-2 p-2 o_line_card">
+                                        <strong><t t-esc="line.product"/></strong>
+                                        <small class="text-muted"><t t-esc="line.picking"/></small>
+                                        <div><small>Ubicación: <t t-esc="line.location_src || '-'"/> → <t t-esc="line.location_dest || '-'"/></small></div>
+                                        <div>Hecho: <t t-esc="line.qty_done"/> / Esperado: <t t-esc="line.qty_expected"/> <t t-esc="line.uom"/></div>
+                                        <div>Empaque: <t t-esc="line.packaging_name || '-'"/> | <t t-esc="line.qty_done_packages"/> / <t t-esc="line.qty_expected_packages"/></div>
+                                        <div>
+                                            Lote:
+                                            <t t-if="line.lot_details &amp;&amp; line.lot_details.length">
+                                                <t t-foreach="line.lot_details" t-as="lot_detail" t-key="'m_' + line.id + '_' + lot_detail.move_line_id">
+                                                    <span class="d-flex justify-content-between align-items-center mb-1">
+                                                        <span><t t-esc="lot_detail.lot || 'No lot'"/>: <t t-esc="lot_detail.qty_done"/> / <t t-esc="lot_detail.qty_expected"/></span>
+                                                        <span class="d-flex gap-1">
+                                                            <button class="btn btn-outline-secondary btn-sm" t-on-click="() => this.onSetLotInstruction(line, lot_detail)">🧾 Instr</button>
+                                                            <button class="btn btn-outline-primary btn-sm" t-on-click="() => this.onSetLotQty(line, lot_detail)">✏️ Real</button>
+                                                        </span>
+                                                    </span>
+                                                </t>
+                                            </t>
+                                            <t t-else=""><t t-esc="line.lot || '-'"/></t>
+                                        </div>
+                                        <div class="mt-2 d-flex gap-2">
+                                            <button class="btn btn-outline-primary btn-sm w-50" t-on-click="() => this.onSetLineQty(line)">✏️ Ajustar</button>
+                                            <label class="btn btn-outline-secondary btn-sm w-50 mb-0" t-att-class="!line.move_line_id ? 'disabled' : ''">
+                                                📷 Tomar foto
+                                                <input type="file" accept="image/*" capture="environment" class="d-none" t-on-change="(ev) => this.onUploadPhoto(line, ev)"/>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <div class="text-center text-muted py-5">Seleccione una operación para empezar.</div>
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>
