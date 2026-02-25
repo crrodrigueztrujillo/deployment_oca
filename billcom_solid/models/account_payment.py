@@ -2,7 +2,7 @@
 import base64
 import logging
 
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
@@ -70,6 +70,29 @@ class AccountPayment(models.Model):
     def _is_solid_vendor_payment(self):
         self.ensure_one()
         return self.payment_type == 'outbound' and self.partner_type == 'supplier'
+
+    @api.model
+    def _get_billcom_solid_validation_exceptions(self):
+        return [
+            'billcom_solid_bill_id',
+            'billcom_solid_sync_date',
+            'billcom_solid_approval_status',
+            'billcom_solid_approver_ids',
+            'billcom_solid_document_id',
+            'billcom_solid_document_upload_id',
+        ]
+
+    @api.model
+    def _get_under_validation_exceptions(self):
+        return list(
+            set(super()._get_under_validation_exceptions() + self._get_billcom_solid_validation_exceptions())
+        )
+
+    @api.model
+    def _get_after_validation_exceptions(self):
+        return list(
+            set(super()._get_after_validation_exceptions() + self._get_billcom_solid_validation_exceptions())
+        )
 
     def _compute_billcom_solid_sync_ready(self):
         for payment in self:
