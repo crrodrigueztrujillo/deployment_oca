@@ -10,7 +10,7 @@
                         string="Sync Bill + Pay"
                         type="object"
                         class="oe_highlight"
-                        attrs="{'invisible': ['|', '|', ('payment_type', '!=', 'outbound'), ('partner_type', '!=', 'supplier'), ('state', '!=', 'posted')] }"
+                        attrs="{'invisible': [('billcom_solid_sync_ready', '=', False)]}"
                         groups="account.group_account_invoice"/>
             </xpath>
 
@@ -27,6 +27,7 @@
                     <field name="billcom_solid_document_upload_id" readonly="1" attrs="{'invisible': [('billcom_solid_document_upload_id', '=', False)]}"/>
                     <field name="billcom_solid_approval_status" readonly="1" attrs="{'invisible': [('billcom_solid_bill_id', '=', False)]}"/>
                     <field name="billcom_solid_sync_date" readonly="1" attrs="{'invisible': [('billcom_solid_sync_date', '=', False)]}"/>
+                    <field name="billcom_solid_sync_ready" invisible="1"/>
                 </group>
             </xpath>
         </field>

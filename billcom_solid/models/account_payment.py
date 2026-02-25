@@ -11,7 +11,7 @@ _logger = logging.getLogger(__name__)
 class AccountPayment(models.Model):
     _name = 'account.payment'
     _inherit = ['account.payment', 'tier.validation']
-    _state_from = ['draft']
+    _state_from = ['posted']
     _state_to = ['posted']
 
     _tier_validation_manual_config = False
@@ -62,19 +62,44 @@ class AccountPayment(models.Model):
         copy=False,
         readonly=True,
     )
+    billcom_solid_sync_ready = fields.Boolean(
+        string='Ready for Sync Bill + Pay',
+        compute='_compute_billcom_solid_sync_ready',
+    )
 
     def _is_solid_vendor_payment(self):
         self.ensure_one()
         return self.payment_type == 'outbound' and self.partner_type == 'supplier'
 
+    def _compute_billcom_solid_sync_ready(self):
+        for payment in self:
+            ready = payment._is_solid_vendor_payment() and payment.state == 'posted'
+            if ready and 'need_validation' in payment._fields and payment.need_validation:
+                ready = False
+            if ready and 'review_ids' in payment._fields and payment.review_ids and not payment.validated:
+                ready = False
+            payment.billcom_solid_sync_ready = ready
+
     def _is_tier_approved_for_sync(self):
         self.ensure_one()
+        if 'need_validation' in self._fields and self.need_validation:
+            return False
         if 'review_ids' not in self._fields or 'validated' not in self._fields:
             return True
         # If there are no reviews, the record does not require tier approval.
         if not self.review_ids:
             return True
         return bool(self.validated)
+
+    def action_post(self):
+        result = super().action_post()
+        posted_payments = self.filtered(lambda payment: payment.state == 'posted')
+        payments_to_request = posted_payments.filtered(
+            lambda payment: payment.need_validation and not payment.review_ids
+        )
+        if payments_to_request:
+            payments_to_request.request_validation()
+        return result
 
     def _map_solid_approval_status(self, status):
         mapping = {
