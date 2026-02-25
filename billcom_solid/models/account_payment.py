@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import base64
 import logging
 
 from odoo import _, fields, models
@@ -37,6 +38,24 @@ class AccountPayment(models.Model):
     billcom_solid_approver_ids = fields.Char(
         string='Bill.com Approver User IDs',
         help='Auto-filled from active Bill.com users selected as approvers.',
+    )
+    billcom_solid_file_data = fields.Binary(
+        string='Supporting Document',
+        attachment=True,
+        help='Optional file uploaded to Bill.com and linked to the created bill.',
+    )
+    billcom_solid_file_name = fields.Char(
+        string='Supporting Document Filename',
+    )
+    billcom_solid_document_id = fields.Char(
+        string='Bill.com Document ID',
+        copy=False,
+        readonly=True,
+    )
+    billcom_solid_document_upload_id = fields.Char(
+        string='Bill.com Upload ID',
+        copy=False,
+        readonly=True,
     )
 
     def _is_solid_vendor_payment(self):
@@ -103,6 +122,29 @@ class AccountPayment(models.Model):
             'billApprovals': True,
         }
 
+    def _upload_solid_supporting_document(self, service, bill_id):
+        self.ensure_one()
+        if not self.billcom_solid_file_data:
+            return {}
+
+        try:
+            file_binary = base64.b64decode(self.billcom_solid_file_data)
+        except Exception as exc:
+            raise UserError(_('Invalid supporting document data: %s') % str(exc))
+
+        if not file_binary:
+            raise UserError(_('Supporting document is empty.'))
+
+        max_size = 6 * 1024 * 1024
+        if len(file_binary) > max_size:
+            raise UserError(
+                _('Supporting document exceeds Bill.com 6 MB limit (current size: %.2f MB).')
+                % (len(file_binary) / (1024 * 1024))
+            )
+
+        file_name = self.billcom_solid_file_name or ('%s_supporting_document' % (self.name or self.id))
+        return service.upload_bill_document(bill_id, file_binary, file_name)
+
     def button_sync_to_billcom(self):
         """Disable default payment sync for vendor payments in Solid flow.
 
@@ -160,6 +202,14 @@ class AccountPayment(models.Model):
 
         bill_id = result['id']
         service.set_bill_approvers(bill_id, approver_ids)
+        document_result = self._upload_solid_supporting_document(service, bill_id)
+        document_id = False
+        upload_id = False
+        if document_result:
+            result_id = document_result.get('id')
+            upload_id = document_result.get('uploadId') or result_id
+            if isinstance(result_id, str) and result_id.startswith('00h'):
+                document_id = result_id
 
         self.with_context(skip_billcom_sync=True).write(
             {
@@ -169,12 +219,19 @@ class AccountPayment(models.Model):
                     result.get('approvalStatus')
                 ),
                 'billcom_solid_approver_ids': ','.join(approver_ids),
+                'billcom_solid_document_id': document_id,
+                'billcom_solid_document_upload_id': upload_id,
             }
         )
 
         message = _(
             'Bill created in Bill.com (%s) and %s approver(s) were assigned automatically.'
         ) % (bill_id, len(approver_ids))
+        if document_result:
+            if document_id:
+                message += _(' Supporting document uploaded (Document ID: %s).') % document_id
+            elif upload_id:
+                message += _(' Supporting document upload started (Upload ID: %s).') % upload_id
 
         return {
             'type': 'ir.actions.client',

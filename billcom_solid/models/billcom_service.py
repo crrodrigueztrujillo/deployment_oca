@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import inspect
 import json
 import logging
 
@@ -20,6 +21,10 @@ class BillcomService(models.AbstractModel):
         api_url = (config.api_url or '').rstrip('/')
         if 'gateway.stage.bill.com' in api_url:
             return 'https://api-stage.bill.com/api/v2'
+        if 'gateway.prod.bill.com' in api_url:
+            return 'https://api.bill.com/api/v2'
+        if 'gateway.bill.com' in api_url:
+            return 'https://api.bill.com/api/v2'
         if 'api.bill.com' in api_url:
             return 'https://api.bill.com/api/v2'
         raise UserError(
@@ -200,3 +205,50 @@ class BillcomService(models.AbstractModel):
             raise
 
         return result
+
+    @api.model
+    def upload_bill_document(self, bill_id, file_binary, file_name):
+        """Upload a supporting document to a Bill.com bill."""
+        if not bill_id:
+            raise UserError(_('Bill ID is required to upload documents.'))
+        if not file_binary:
+            raise UserError(_('Document content is empty.'))
+        if not file_name:
+            file_name = 'payment_supporting_document'
+
+        endpoint = 'documents/bills/%s' % bill_id
+        params = {'name': file_name}
+
+        # OCA billcom supports file uploads via _make_request(..., is_file_upload=True).
+        # Fallback to raw HTTP for legacy billcom implementations.
+        try:
+            signature = inspect.signature(self._make_request)
+            if 'is_file_upload' in signature.parameters:
+                return self._make_request(
+                    endpoint,
+                    method='POST',
+                    data=file_binary,
+                    params=params,
+                    is_file_upload=True,
+                )
+        except (TypeError, ValueError):
+            pass
+
+        config = self._get_config()
+        token = self._get_token()
+        url = '%s/%s' % ((config.api_url or '').rstrip('/'), endpoint.lstrip('/'))
+        headers = {
+            'accept': 'application/json',
+            'content-type': 'application/octet-stream',
+            'sessionId': token,
+            'devKey': config.dev_key,
+        }
+
+        try:
+            response = requests.post(url, data=file_binary, headers=headers, params=params, timeout=60)
+            response.raise_for_status()
+            return response.json() if response.content else {}
+        except requests.exceptions.RequestException as exc:
+            raise UserError(_('Error uploading document to Bill.com: %s') % str(exc))
+        except ValueError as exc:
+            raise UserError(_('Unable to parse Bill.com document upload response: %s') % str(exc))
