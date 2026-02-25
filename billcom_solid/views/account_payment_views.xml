@@ -19,7 +19,7 @@
                        attrs="{'invisible': ['|', ('payment_type', '!=', 'outbound'), ('partner_type', '!=', 'supplier')]}">
                     <field name="billcom_solid_approver_ids"
                            readonly="1"
-                           placeholder="Auto-filled from active Bill.com approvers"/>
+                           placeholder="Auto-filled from Bill.com default approvers in configuration"/>
                     <field name="billcom_solid_file_data" filename="billcom_solid_file_name"/>
                     <field name="billcom_solid_file_name" invisible="1"/>
                     <field name="billcom_solid_bill_id" readonly="1" attrs="{'invisible': [('billcom_solid_bill_id', '=', False)]}"/>

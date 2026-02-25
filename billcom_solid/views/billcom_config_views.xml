@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_billcom_config_form_solid_approvers" model="ir.ui.view">
+        <field name="name">billcom.config.form.solid.approvers</field>
+        <field name="model">billcom.config</field>
+        <field name="inherit_id" ref="billcom.view_billcom_config_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='sync_payments']" position="after">
+                <button name="action_refresh_billcom_solid_approvers"
+                        type="object"
+                        string="Refresh Bill.com Users"
+                        class="btn-secondary"
+                        attrs="{'invisible': [('sync_payments', '=', False)]}"/>
+                <field name="billcom_solid_default_approver_ids"
+                       widget="many2many_tags"
+                       options="{'no_create': True, 'no_open': True}"
+                       attrs="{'invisible': [('sync_payments', '=', False)]}"
+                       placeholder="Leave empty to sync without approvers"/>
+                <field name="billcom_solid_available_approver_ids" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

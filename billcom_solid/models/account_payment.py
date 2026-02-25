@@ -254,14 +254,7 @@ class AccountPayment(models.Model):
             )
 
         service = self.env['billcom.service']
-        approver_ids = service.get_active_bill_approver_ids()
-        if not approver_ids:
-            raise UserError(
-                _(
-                    'No active Bill.com approvers were found. '
-                    'Please configure active approver users in Bill.com before syncing.'
-                )
-            )
+        approver_ids = service.get_solid_default_approver_ids()
 
         bill_data = self._prepare_solid_bill_data()
         result = service._make_request('bills', method='POST', data=bill_data)
@@ -270,7 +263,8 @@ class AccountPayment(models.Model):
             raise UserError(_('Bill.com did not return a bill ID for this payment sync.'))
 
         bill_id = result['id']
-        service.set_bill_approvers(bill_id, approver_ids)
+        if approver_ids:
+            service.set_bill_approvers(bill_id, approver_ids)
         document_result = self._upload_solid_supporting_document(service, bill_id)
         document_id = False
         upload_id = False
@@ -287,15 +281,20 @@ class AccountPayment(models.Model):
                 'billcom_solid_approval_status': self._map_solid_approval_status(
                     result.get('approvalStatus')
                 ),
-                'billcom_solid_approver_ids': ','.join(approver_ids),
+                'billcom_solid_approver_ids': ','.join(approver_ids) if approver_ids else False,
                 'billcom_solid_document_id': document_id,
                 'billcom_solid_document_upload_id': upload_id,
             }
         )
 
-        message = _(
-            'Bill created in Bill.com (%s) and %s approver(s) were assigned automatically.'
-        ) % (bill_id, len(approver_ids))
+        if approver_ids:
+            message = _(
+                'Bill created in Bill.com (%s) and %s approver(s) were assigned from Bill.com settings.'
+            ) % (bill_id, len(approver_ids))
+        else:
+            message = _(
+                'Bill created in Bill.com (%s) without approvers because no default approvers are configured.'
+            ) % bill_id
         if document_result:
             if document_id:
                 message += _(' Supporting document uploaded (Document ID: %s).') % document_id

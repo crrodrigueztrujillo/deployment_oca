@@ -101,6 +101,118 @@ class BillcomService(models.AbstractModel):
         return None
 
     @api.model
+    def _get_all_bill_users(self):
+        all_users = []
+        start = 0
+        page_size = 200
+
+        while True:
+            result = self._v2_post('List/User.json', {'start': start, 'max': page_size})
+            response_data = result.get('response_data') or []
+            if isinstance(response_data, dict):
+                response_data = (
+                    response_data.get('results')
+                    or response_data.get('users')
+                    or response_data.get('data')
+                    or []
+                )
+            if not isinstance(response_data, list):
+                response_data = []
+
+            if not response_data:
+                break
+
+            all_users.extend(response_data)
+            if len(response_data) < page_size:
+                break
+            start += page_size
+
+        return all_users
+
+    @api.model
+    def _get_bill_approver_profile_ids(self):
+        profile_ids = set()
+        try:
+            profile_result = self._v2_post('List/Profile.json', {'start': 0, 'max': 200})
+            profile_rows = profile_result.get('response_data') or []
+            if isinstance(profile_rows, list):
+                for profile in profile_rows:
+                    name = str(profile.get('name') or '').strip().lower()
+                    profile_id = str(profile.get('id') or '').strip()
+                    if not profile_id:
+                        continue
+                    if name in {'approver', 'accountant', 'administrator'}:
+                        profile_ids.add(profile_id)
+        except Exception as exc:
+            _logger.warning('Could not fetch Bill.com profiles for approver filtering: %s', str(exc))
+        return profile_ids
+
+    @api.model
+    def _extract_bill_user_name(self, user_data):
+        return (
+            str(
+                user_data.get('name')
+                or user_data.get('fullName')
+                or user_data.get('displayName')
+                or user_data.get('userName')
+                or user_data.get('email')
+                or user_data.get('id')
+                or ''
+            ).strip()
+        )
+
+    @api.model
+    def get_bill_users_for_selection(self):
+        """Return Bill.com users with approver metadata for config selection."""
+        all_users = self._get_all_bill_users()
+        approver_profile_ids = self._get_bill_approver_profile_ids()
+
+        rows = []
+        seen = set()
+        for user in all_users:
+            user_id = str(user.get('id') or '').strip()
+            if not user_id or not user_id.startswith('006') or user_id in seen:
+                continue
+            seen.add(user_id)
+
+            explicit_approver = self._get_bill_user_approver_flag(user)
+            if explicit_approver is None:
+                explicit_approver = (
+                    str(user.get('profileId') or '').strip() in approver_profile_ids
+                    if approver_profile_ids
+                    else False
+                )
+
+            rows.append(
+                {
+                    'billcom_user_id': user_id,
+                    'name': self._extract_bill_user_name(user),
+                    'email': str(user.get('email') or '').strip() or False,
+                    'is_active_bill_user': self._is_active_bill_user(user),
+                    'is_authorized_approver': bool(explicit_approver),
+                }
+            )
+
+        return sorted(rows, key=lambda row: ((row.get('name') or '').lower(), row['billcom_user_id']))
+
+    @api.model
+    def get_solid_default_approver_ids(self):
+        """Get globally configured approvers from billcom.config for Solid flow."""
+        config = self._get_config()
+        configured = getattr(config, 'billcom_solid_default_approver_ids', self.env['billcom.solid.approver'])
+
+        approver_ids = []
+        seen = set()
+        for approver in configured:
+            user_id = str(approver.billcom_user_id or '').strip()
+            if not user_id or not user_id.startswith('006') or user_id in seen:
+                continue
+            seen.add(user_id)
+            approver_ids.append(user_id)
+
+        return approver_ids
+
+    @api.model
     def _v2_post(self, endpoint, payload=None):
         config = self._get_config()
         token = self._get_v2_token()
@@ -137,77 +249,17 @@ class BillcomService(models.AbstractModel):
     @api.model
     def get_active_bill_approver_ids(self):
         """Return active Bill.com approver user IDs."""
-        all_users = []
-        start = 0
-        page_size = 200
-
-        while True:
-            result = self._v2_post('List/User.json', {'start': start, 'max': page_size})
-            response_data = result.get('response_data') or []
-            if isinstance(response_data, dict):
-                response_data = (
-                    response_data.get('results')
-                    or response_data.get('users')
-                    or response_data.get('data')
-                    or []
-                )
-            if not isinstance(response_data, list):
-                response_data = []
-
-            if not response_data:
-                break
-
-            all_users.extend(response_data)
-            if len(response_data) < page_size:
-                break
-            start += page_size
-
-        active_users = [user for user in all_users if self._is_active_bill_user(user)]
-        authorized_profile_ids = set()
-        try:
-            profile_result = self._v2_post('List/Profile.json', {'start': 0, 'max': 200})
-            profile_rows = profile_result.get('response_data') or []
-            if isinstance(profile_rows, list):
-                for profile in profile_rows:
-                    name = str(profile.get('name') or '').strip().lower()
-                    profile_id = str(profile.get('id') or '').strip()
-                    if not profile_id:
-                        continue
-                    if name in {'approver', 'accountant', 'administrator'}:
-                        authorized_profile_ids.add(profile_id)
-        except Exception as exc:
-            _logger.warning('Could not fetch Bill.com profiles for approver filtering: %s', str(exc))
-
-        profile_authorized_users = []
-        if authorized_profile_ids:
-            profile_authorized_users = [
-                user
-                for user in active_users
-                if str(user.get('profileId') or '').strip() in authorized_profile_ids
-            ]
-
-        explicit_approvers = []
-        for user in active_users:
-            if self._get_bill_user_approver_flag(user) is True:
-                explicit_approvers.append(user)
-
-        selected_users = explicit_approvers or profile_authorized_users
+        rows = self.get_bill_users_for_selection()
+        selected_users = [
+            row for row in rows if row.get('is_active_bill_user') and row.get('is_authorized_approver')
+        ]
         approver_ids = []
         seen = set()
         for user in selected_users:
-            user_id = str(user.get('id') or '').strip()
-            if user_id and user_id.startswith('006') and user_id not in seen:
+            user_id = str(user.get('billcom_user_id') or '').strip()
+            if user_id and user_id not in seen:
                 seen.add(user_id)
                 approver_ids.append(user_id)
-
-        _logger.info(
-            'Bill.com approver autodiscovery: total_users=%s active_users=%s explicit_approvers=%s profile_authorized=%s selected=%s',
-            len(all_users),
-            len(active_users),
-            len(explicit_approvers),
-            len(profile_authorized_users),
-            len(approver_ids),
-        )
         return approver_ids
 
     @api.model

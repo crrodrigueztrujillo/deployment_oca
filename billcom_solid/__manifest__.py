@@ -18,6 +18,8 @@
         'base_tier_validation',
     ],
     'data': [
+        'security/ir.model.access.csv',
+        'views/billcom_config_views.xml',
         'views/account_payment_views.xml',
     ],
     'installable': True,
