@@ -9,7 +9,12 @@ _logger = logging.getLogger(__name__)
 
 
 class AccountPayment(models.Model):
-    _inherit = 'account.payment'
+    _name = 'account.payment'
+    _inherit = ['account.payment', 'tier.validation']
+    _state_from = ['draft']
+    _state_to = ['posted']
+
+    _tier_validation_manual_config = False
 
     billcom_solid_bill_id = fields.Char(
         string='Bill.com Bill ID',
@@ -61,6 +66,15 @@ class AccountPayment(models.Model):
     def _is_solid_vendor_payment(self):
         self.ensure_one()
         return self.payment_type == 'outbound' and self.partner_type == 'supplier'
+
+    def _is_tier_approved_for_sync(self):
+        self.ensure_one()
+        if 'review_ids' not in self._fields or 'validated' not in self._fields:
+            return True
+        # If there are no reviews, the record does not require tier approval.
+        if not self.review_ids:
+            return True
+        return bool(self.validated)
 
     def _map_solid_approval_status(self, status):
         mapping = {
@@ -177,6 +191,13 @@ class AccountPayment(models.Model):
             raise UserError(_('Sync Bill + Pay is only available for vendor payments.'))
         if self.state != 'posted':
             raise UserError(_('Payment must be posted before syncing to Bill.com.'))
+        if not self._is_tier_approved_for_sync():
+            raise UserError(
+                _(
+                    'This payment still has pending/rejected tier validation reviews. '
+                    'Approve the payment in Odoo before Sync Bill + Pay.'
+                )
+            )
         if not self.partner_id.is_sync_to_billcom:
             raise UserError(_('Vendor is not configured to sync with Bill.com.'))
         if self.billcom_solid_bill_id:

@@ -136,7 +136,7 @@ class BillcomService(models.AbstractModel):
 
     @api.model
     def get_active_bill_approver_ids(self):
-        """Return active Bill.com approver user IDs, defaulting to active users if no approver flag exists."""
+        """Return active Bill.com approver user IDs."""
         all_users = []
         start = 0
         page_size = 200
@@ -163,12 +163,35 @@ class BillcomService(models.AbstractModel):
             start += page_size
 
         active_users = [user for user in all_users if self._is_active_bill_user(user)]
+        authorized_profile_ids = set()
+        try:
+            profile_result = self._v2_post('List/Profile.json', {'start': 0, 'max': 200})
+            profile_rows = profile_result.get('response_data') or []
+            if isinstance(profile_rows, list):
+                for profile in profile_rows:
+                    name = str(profile.get('name') or '').strip().lower()
+                    profile_id = str(profile.get('id') or '').strip()
+                    if not profile_id:
+                        continue
+                    if name in {'approver', 'accountant', 'administrator'}:
+                        authorized_profile_ids.add(profile_id)
+        except Exception as exc:
+            _logger.warning('Could not fetch Bill.com profiles for approver filtering: %s', str(exc))
+
+        profile_authorized_users = []
+        if authorized_profile_ids:
+            profile_authorized_users = [
+                user
+                for user in active_users
+                if str(user.get('profileId') or '').strip() in authorized_profile_ids
+            ]
+
         explicit_approvers = []
         for user in active_users:
             if self._get_bill_user_approver_flag(user) is True:
                 explicit_approvers.append(user)
 
-        selected_users = explicit_approvers or active_users
+        selected_users = explicit_approvers or profile_authorized_users
         approver_ids = []
         seen = set()
         for user in selected_users:
@@ -178,10 +201,11 @@ class BillcomService(models.AbstractModel):
                 approver_ids.append(user_id)
 
         _logger.info(
-            'Bill.com approver autodiscovery: total_users=%s active_users=%s explicit_approvers=%s selected=%s',
+            'Bill.com approver autodiscovery: total_users=%s active_users=%s explicit_approvers=%s profile_authorized=%s selected=%s',
             len(all_users),
             len(active_users),
             len(explicit_approvers),
+            len(profile_authorized_users),
             len(approver_ids),
         )
         return approver_ids
@@ -201,7 +225,17 @@ class BillcomService(models.AbstractModel):
         try:
             _logger.info('Setting Bill.com approvers for bill %s', bill_id)
             result = self._v2_post('SetApprovers.json', payload)
-        except UserError:
+        except UserError as exc:
+            message = str(exc)
+            if 'not an authorized approver' in message.lower():
+                raise UserError(
+                    _(
+                        'At least one selected Bill.com user is not authorized to approve bills.\n'
+                        'Assign profile Approver, Accountant, or Administrator and ensure the user is Active in Bill.com.\n'
+                        'Original error: %s'
+                    )
+                    % message
+                )
             raise
 
         return result

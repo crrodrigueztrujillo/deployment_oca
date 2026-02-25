@@ -15,6 +15,7 @@
     'version': '16.0.1.0.0',
     'depends': [
         'billcom',
+        'base_tier_validation',
     ],
     'data': [
         'views/account_payment_views.xml',
