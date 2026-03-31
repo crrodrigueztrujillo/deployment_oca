@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <!-- Insertar campo Project en /shop/payment cuando total = 0 (free cart) -->
+  <template id="solidtile_payment_add_project_field" inherit_id="website_sale.payment"
+    name="SolidTile: Project on Payment (Free Cart)">
+    <xpath expr="//form[@name='o_wsale_confirm_order']/t[@t-call='website_sale.payment_footer']"
+      position="before">
+      <div class="mt-3 mb-3">
+        <label for="wsale_project_name" class="form-label">
+          Project
+        </label>
+        <input type="text"
+          id="wsale_project_name"
+          name="project_name"
+          class="form-control"
+          t-att-value="website_sale_order.website_project_name or ''"
+          placeholder="Enter project name" />
+        <small class="form-text text-muted">
+          This project will be created (if needed) and linked to your order.
+        </small>
+      </div>
+    </xpath>
+  </template>
+</odoo>

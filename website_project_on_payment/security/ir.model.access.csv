@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_website_project_on_payment_website_project_on_payment,website_project_on_payment.website_project_on_payment,model_website_project_on_payment_website_project_on_payment,base.group_user,1,1,1,1
